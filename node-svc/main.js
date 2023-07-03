@@ -2,6 +2,7 @@
 const express = require("express");
 const app = express();
 const server = require("http").createServer(app);
+const promClient = require("prom-client");
 
 const dotenv = require("dotenv");
 dotenv.config();
@@ -34,7 +35,31 @@ app.get("/txns/:id", async function (req, res) {
   res.status(200).json(transaction);
 });
 
-server.listen(3000, async () => {
-  console.log("Server listening at port %d", 3000);
+const cpuUsageGauge = new promClient.Gauge({
+  name: "nodejs_cpu_usage",
+  help: "CPU usage for Node.js service",
+});
+
+const memoryUsageGauge = new promClient.Gauge({
+  name: "nodejs_memory_usage",
+  help: "Memory usage for Node.js service",
+});
+
+app.get("/metrics", async function (req, res) {
+  console.log("---- get metrics ---");
+  const cpuUsage = process.cpuUsage().user / 1000000;
+  cpuUsageGauge.set(cpuUsage);
+
+  const memoryUsage = process.memoryUsage().rss / 1024 / 1024;
+  memoryUsageGauge.set(memoryUsage);
+
+  res.set("Content-Type", promClient.register.contentType);
+  res.send(await promClient.register.metrics());
+  res.end();
+});
+
+const PORT = 3001;
+server.listen(PORT, async () => {
+  console.log("Server listening at port %d", PORT);
   await initDB();
 });

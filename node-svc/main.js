@@ -1,5 +1,7 @@
 // start express
+
 const express = require("express");
+
 const app = express();
 const server = require("http").createServer(app);
 const promClient = require("prom-client");
@@ -17,9 +19,6 @@ app.get("/txns", async function (req, res) {
   console.log("----- list all txns -----");
   const rps = req.query.rps || 15000;
   const filter = {};
-  // if (req.body.senderWalletNumber) {
-  //   filter.senderWalletNumber = req.body.senderWalletNumber;
-  // }
   const transactions = await TransactionModel.find(filter).limit(rps);
   console.log(transactions && transactions.length);
   res.status(200).json(transactions);
@@ -43,17 +42,19 @@ const memoryUsageGauge = new promClient.Gauge({
   help: "Memory usage for Node.js service",
 });
 
+const primaryCpuUsage = process.cpuUsage();
+
 app.get("/metrics", async function (req, res) {
   console.log("---- get metrics ---");
-  const cpuUsage = process.cpuUsage().user / 1000000;
-  cpuUsageGauge.set(cpuUsage);
 
-  const memoryUsage = process.memoryUsage().rss / 1024 / 1024;
-  memoryUsageGauge.set(memoryUsage);
-
+  const cpuUsage = process.cpuUsage(primaryCpuUsage);
+  const userUsageInMicroSeconds = cpuUsage.user;
+  const userUsageInSeconds = userUsageInMicroSeconds / 1000000;
+  cpuUsageGauge.set(userUsageInSeconds);
+  const memoryUsage = process.memoryUsage();
+  memoryUsageGauge.set(memoryUsage.heapUsed);
   res.set("Content-Type", promClient.register.contentType);
-  res.send(await promClient.register.metrics());
-  res.end();
+  res.end(await promClient.register.metrics());
 });
 
 const PORT = 3001;

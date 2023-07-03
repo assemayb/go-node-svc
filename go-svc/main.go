@@ -61,13 +61,15 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
+		cpuUsageGauge.Set(cpuUsage[0])
+
 		memoryInfo, err := mem.VirtualMemory()
 		if err != nil {
 			log.Fatal(err)
 		}
 		memoryUsage := float64(memoryInfo.Used) / 1024 / 1024
-		cpuUsageGauge.Set(cpuUsage[0])
 		memoryUsageGauge.Set(memoryUsage)
+
 		promhttp.Handler().ServeHTTP(ctx.Writer, ctx.Request)
 
 	})

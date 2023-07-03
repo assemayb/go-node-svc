@@ -76,5 +76,5 @@ func main() {
 	defer mongoClient.Disconnect(ctx)
 	basePath := server.Group("/v1")
 	transactionsController.RegisterTransactionsRoutes(basePath)
-	log.Fatal(server.Run(":9090"))
+	log.Fatal(server.Run(":3002"))
 }

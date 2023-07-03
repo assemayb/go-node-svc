@@ -13,15 +13,13 @@ app.use(express.urlencoded({ limit: "50mb" }));
 
 const TransactionModel = require("./models/Transaction.js");
 
-app.post("/txns", async function (req, res) {
-  console.log("list all txns");
+app.get("/txns", async function (req, res) {
+  console.log("----- list all txns -----");
   const rps = req.query.rps || 15000;
-  console.log("rps", rps);
   const filter = {};
-
-  if (req.body.senderWalletNumber) {
-    filter.senderWalletNumber = req.body.senderWalletNumber;
-  }
+  // if (req.body.senderWalletNumber) {
+  //   filter.senderWalletNumber = req.body.senderWalletNumber;
+  // }
   const transactions = await TransactionModel.find(filter).limit(rps);
   console.log(transactions && transactions.length);
   res.status(200).json(transactions);
@@ -36,12 +34,12 @@ app.get("/txns/:id", async function (req, res) {
 });
 
 const cpuUsageGauge = new promClient.Gauge({
-  name: "nodejs_cpu_usage",
+  name: "nodejs_svc_cpu_usage",
   help: "CPU usage for Node.js service",
 });
 
 const memoryUsageGauge = new promClient.Gauge({
-  name: "nodejs_memory_usage",
+  name: "nodejs_svc_memory_usage",
   help: "Memory usage for Node.js service",
 });
 

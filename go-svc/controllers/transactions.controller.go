@@ -18,14 +18,8 @@ func NewTransactionController(transactionService services.TransactionService) Tr
 }
 
 func (tc *TransactionController) GetAllTransactions(ctx *gin.Context) {
-	var body map[string]string
-	err := ctx.BindJSON(&body)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
-		return
-	}
 	params := ctx.Request.URL.Query()
-	transactions, err := tc.TransactionService.GetAllTransactions(body, params)
+	transactions, err := tc.TransactionService.GetAllTransactions(nil, params)
 	if err != nil {
 		ctx.JSON(http.StatusBadGateway, gin.H{"message": "Error while fetching transactions"})
 		return
@@ -45,6 +39,6 @@ func (tc *TransactionController) GetTransactionById(ctx *gin.Context) {
 
 func (tc *TransactionController) RegisterTransactionsRoutes(router *gin.RouterGroup) {
 	txnsRouter := router.Group("/transactions")
-	txnsRouter.POST("/", tc.GetAllTransactions)
+	txnsRouter.GET("/", tc.GetAllTransactions)
 	txnsRouter.GET("/:id", tc.GetTransactionById)
 }

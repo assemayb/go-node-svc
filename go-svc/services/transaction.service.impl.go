@@ -39,14 +39,21 @@ func (t *TransactionServiceImpl) GetAllTransactions(filter TransactionsFilter, p
 		limit = rpsInt
 	}
 
-	searchObject := bson.D{}
-	for key, value := range filter {
-		searchObject = append(searchObject, bson.E{Key: key, Value: value})
-	}
-
-	cursor, err := t.transactionsCollection.Find(t.ctx, searchObject, &options.FindOptions{Limit: &limit})
-	if err != nil {
-		return nil, err
+	var cursor *mongo.Cursor
+	if filter == nil {
+		searchObject := bson.D{}
+		for key, value := range filter {
+			searchObject = append(searchObject, bson.E{Key: key, Value: value})
+		}
+		cursor, err = t.transactionsCollection.Find(t.ctx, searchObject, &options.FindOptions{Limit: &limit})
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		cursor, err = t.transactionsCollection.Find(t.ctx, bson.D{}, &options.FindOptions{Limit: &limit})
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	for cursor.Next(t.ctx) {

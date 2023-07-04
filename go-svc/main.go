@@ -77,16 +77,18 @@ func main() {
 
 			cpuUsageGauge.Set(cpuPercent)
 			memoryUsageGauge.Set(float64(memInfo.RSS) / 1024 / 1024)
+			fmt.Println("CPU Percent:", cpuPercent, "Memory Info:", memInfo.RSS/1024/1024, "MB")
 			time.Sleep(1 * time.Second)
 		}
 	}()
 
 	server.GET("/metrics", func(ctx *gin.Context) {
+		// fmt.Println("Metrics endpoint called")
 		promhttp.Handler().ServeHTTP(ctx.Writer, ctx.Request)
 	})
 
 	defer mongoClient.Disconnect(ctx)
 	basePath := server.Group("/v1")
 	transactionsController.RegisterTransactionsRoutes(basePath)
-	log.Fatal(server.Run("localhost:3002"))
+	log.Fatal(server.Run(":3002"))
 }

@@ -52,7 +52,7 @@ setInterval(() => {
     const cpuUsg = stats.cpu;
     cpuUsageGauge.set(cpuUsg);
     memoryUsageGauge.set(memoryUsg);
-    console.log(`CPU: ${cpuUsg}%, Memory: ${memoryUsg} MB`);
+    // console.log(`CPU: ${cpuUsg}%, Memory: ${memoryUsg} MB`);
   });
 }, 1000);
 

@@ -4,17 +4,17 @@ scrape_configs:
   - job_name: "nodejs-app"
     metrics_path: "/metrics"
     static_configs:
-      - targets: ["172.25.144.1:3001"]
+      - targets: ["172.28.160.1:3001"]
 
   - job_name: "go_app"
     metrics_path: "/metrics"
     static_configs:
-      - targets: ["172.25.144.1:3002"]
+      - targets: ["172.28.160.1:3002"]
 
   - job_name: "spring_boot_app"
     metrics_path: "/actuator/prometheus"
     static_configs:
-      - targets: ["172.25.144.1:3003"]
+      - targets: ["172.28.160.1:3003"]
 
   # - job_name: "node_exporter"
   #   static_configs:

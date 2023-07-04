@@ -77,7 +77,7 @@ func main() {
 
 			cpuUsageGauge.Set(cpuPercent)
 			memoryUsageGauge.Set(float64(memInfo.RSS) / 1024 / 1024)
-			fmt.Println("CPU Percent:", cpuPercent, "Memory Info:", memInfo.RSS/1024/1024, "MB")
+			// fmt.Println("CPU Percent:", cpuPercent, "Memory Info:", memInfo.RSS/1024/1024, "MB")
 			time.Sleep(1 * time.Second)
 		}
 	}()

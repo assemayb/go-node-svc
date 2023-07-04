@@ -1,6 +1,7 @@
 // start express
-
+const os = require("os");
 const express = require("express");
+const pidusage = require("pidusage");
 
 const app = express();
 const server = require("http").createServer(app);
@@ -8,7 +9,7 @@ const promClient = require("prom-client");
 
 const dotenv = require("dotenv");
 dotenv.config();
-const { initDB, getDb } = require("./database/config.js");
+const { initDB } = require("./database/config.js");
 
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb" }));
@@ -16,11 +17,10 @@ app.use(express.urlencoded({ limit: "50mb" }));
 const TransactionModel = require("./models/Transaction.js");
 
 app.get("/txns", async function (req, res) {
-  console.log("----- list all txns -----");
+  // console.log("----- list all txns -----");
   const rps = req.query.rps || 15000;
   const filter = {};
   const transactions = await TransactionModel.find(filter).limit(rps);
-  console.log(transactions && transactions.length);
   res.status(200).json(transactions);
 });
 
@@ -42,17 +42,22 @@ const memoryUsageGauge = new promClient.Gauge({
   help: "Memory usage for Node.js service",
 });
 
-const primaryCpuUsage = process.cpuUsage();
+setInterval(() => {
+  pidusage(process.pid, (err, stats) => {
+    if (err) {
+      console.error(err);
+      return;
+    }
+    const memoryUsg = stats.memory / 1024 / 1024;
+    const cpuUsg = stats.cpu;
+    cpuUsageGauge.set(cpuUsg);
+    memoryUsageGauge.set(memoryUsg);
+    console.log(`CPU: ${cpuUsg}%, Memory: ${memoryUsg} MB`);
+  });
+}, 1000);
 
 app.get("/metrics", async function (req, res) {
   console.log("---- get metrics ---");
-
-  const cpuUsage = process.cpuUsage(primaryCpuUsage);
-  const userUsageInMicroSeconds = cpuUsage.user;
-  const userUsageInSeconds = userUsageInMicroSeconds / 1000000;
-  cpuUsageGauge.set(userUsageInSeconds);
-  const memoryUsage = process.memoryUsage();
-  memoryUsageGauge.set(memoryUsage.heapUsed);
   res.set("Content-Type", promClient.register.contentType);
   res.end(await promClient.register.metrics());
 });

@@ -2,9 +2,12 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"go-svc-test/controllers"
 	"go-svc-test/database"
 	"go-svc-test/services"
+	"os"
+	"time"
 
 	"log"
 	"net/http"
@@ -12,8 +15,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/shirou/gopsutil/cpu"
-	"github.com/shirou/gopsutil/mem"
+	"github.com/shirou/gopsutil/process"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -52,30 +54,39 @@ func main() {
 		Name: "go_svc_memory_usage",
 		Help: "Memory usage for Go service",
 	})
+
 	prometheus.MustRegister(cpuUsageGauge)
 	prometheus.MustRegister(memoryUsageGauge)
 
+	go func() {
+		for {
+			pid := os.Getpid()
+			p, _ := process.NewProcess(int32(pid))
+
+			memInfo, err := p.MemoryInfo()
+
+			if err != nil {
+				fmt.Println("Error getting memory info:", err)
+				return
+			}
+			cpuPercent, err := p.CPUPercent()
+			if err != nil {
+				fmt.Println("Error getting CPU percent:", err)
+				return
+			}
+
+			cpuUsageGauge.Set(cpuPercent)
+			memoryUsageGauge.Set(float64(memInfo.RSS) / 1024 / 1024)
+			time.Sleep(1 * time.Second)
+		}
+	}()
+
 	server.GET("/metrics", func(ctx *gin.Context) {
-
-		cpuUsage, err := cpu.Percent(0, false)
-		if err != nil {
-			log.Fatal(err)
-		}
-		cpuUsageGauge.Set(cpuUsage[0])
-
-		memoryInfo, err := mem.VirtualMemory()
-		if err != nil {
-			log.Fatal(err)
-		}
-		memoryUsage := float64(memoryInfo.Used) / 1024 / 1024
-		memoryUsageGauge.Set(memoryUsage)
-
 		promhttp.Handler().ServeHTTP(ctx.Writer, ctx.Request)
-
 	})
 
 	defer mongoClient.Disconnect(ctx)
 	basePath := server.Group("/v1")
 	transactionsController.RegisterTransactionsRoutes(basePath)
-	log.Fatal(server.Run(":3002"))
+	log.Fatal(server.Run("localhost:3002"))
 }

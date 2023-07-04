@@ -37,7 +37,6 @@ func (t *TransactionServiceImpl) GetAllTransactions(filter TransactionsFilter, p
 		fmt.Println(err)
 	} else {
 		limit = rpsInt
-		fmt.Println("limit: ", limit)
 	}
 
 	var cursor *mongo.Cursor

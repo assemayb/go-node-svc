@@ -12,13 +12,14 @@ In order to measure the amount of memory and cpu time consumed by every service 
 
 ### Test Results
 
+<!--
 | Language | Color                                    |
 | -------- | ---------------------------------------- |
 | Node     | <span style="color:blue">blue</span>     |
 | Java     | <span style="color:green">green</span>   |
-| Go       | <span style="color:yellow">yellow</span> |
+| Go       | <span style="color:yellow">yellow</span> | -->
 
----
+<!-- --- -->
 
 - Fetching 3000 requests wih 20 concurrent connections in node
   ![](./media/grafana_tests/node_graph.png)
@@ -51,11 +52,9 @@ In order to measure the amount of memory and cpu time consumed by every service 
 - Fetching 5000 requests wih 20 concurrent connections all services
   ![](./media/grafana_tests/go_node_java_5000.png)
 
-  When I ran this test node and go executed as expected, node's response time and
-  memory footprint increased but Go's stayed the same. Java on the other hand had a huge spike in memory usage even after the test was done, that's because of its garbage collector.
+When I ran this test, Node and Go executed as expected. However, Node's response time and memory footprint increased, while Go's remained the same. Java, on the other hand, experienced a huge spike in memory usage even after the test was completed, due to its garbage collector.
 
-  Both Java and Go use garbage collection to manage memory, but Go's garbage collector is designed to be more efficient and have less impact on CPU and memory usage than Java's.
+Both Java and Go utilize garbage collection to manage memory. However, Go's garbage collector is designed to be more efficient and have less impact on CPU and memory usage compared to Java's.
+Go's concurrent garbage collector reduces the impact of garbage collection on resources and allows the application to run smoothly without pausing.
 
-  Go uses a concurrent garbage collector that runs concurrently with the application, rather than pausing the application for garbage collection. This reduces the impact of garbage collection on our resources and allows the application to continue running smoothly.
-
-  Java garbage collector identifies objects that are no longer being used by the program and frees the memory associated with those objects. However, in order to do this, the garbage collector needs to temporarily allocate additional memory to perform its analysis and bookkeeping.
+The Java garbage collector identifies objects that are no longer being used by the program and frees the memory associated with those objects. However, to do this, the garbage collector needs to temporarily allocate additional memory to perform its analysis and bookkeeping.
